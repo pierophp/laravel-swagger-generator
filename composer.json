@@ -1,0 +1,12 @@
+{
+    "name": "pierophp/laravel-swagger-generator",
+    "authors": [
+        {
+            "name": "Piero Giusti",
+            "email": "pierophp@gmail.com"
+        }
+    ],
+    "require": {
+        "doctrine/annotations": "^1.4"
+    }
+}

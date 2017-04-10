@@ -6,6 +6,11 @@
             "email": "pierophp@gmail.com"
         }
     ],
+    "autoload": {
+        "psr-4": {
+        "LaravelSwaggerGenerator\\": "src/"
+        }
+    },
     "require": {
         "doctrine/annotations": "^1.4"
     }

@@ -12,6 +12,6 @@
         }
     },
     "require": {
-        "doctrine/annotations": "^1.4"
+        "mindplay/annotations": "~1.2"
     }
 }

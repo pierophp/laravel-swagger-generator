@@ -3,6 +3,7 @@
 namespace LaravelSwaggerGenerator\Console\Commands;
 
 use Illuminate\Console\Command;
+use LaravelSwaggerGenerator\Core\Generator;
 
 class GenerateCommand extends Command
 {
@@ -37,7 +38,8 @@ class GenerateCommand extends Command
      */
     public function handle()
     {
-        echo "test";
+        $generator = new Generator();
+        $generator->generate();
     }
 
 }

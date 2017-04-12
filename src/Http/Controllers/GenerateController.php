@@ -16,7 +16,12 @@ class GenerateController extends Controller
      */
     public function generate(Request $request)
     {
+        $replace = false;
+        if ($request->get('replace')) {
+            $replace = true;
+        }
+        
         $generator = new Generator();
-        $generator->generate();
+        $generator->generate($replace);
     }
 }

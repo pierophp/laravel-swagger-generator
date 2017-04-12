@@ -4,15 +4,22 @@ namespace LaravelSwaggerGenerator\Core;
 
 class Generator
 {
+    protected $replace;
+
+    protected $className;
+
+    protected $methodName;
+
     protected $route;
 
     protected $reflectionMethod;
 
     protected $description;
 
-    public function generate()
+    public function generate($replace = false)
 
     {
+        $this->replace = $replace;
         $api = app('Dingo\Api\Routing\Router');
         $routes = $api->getRoutes();
         $i = 0;
@@ -21,11 +28,15 @@ class Generator
             $i++;
 
             $classExplode = explode('@', $this->route->action['uses']);
-            $className = $classExplode[0];
-            $methodName = $classExplode[1];
+            $this->className = $classExplode[0];
+            $this->methodName = $classExplode[1];
             
-            $reflectionClass = new \ReflectionClass($className);
-            $this->reflectionMethod = $reflectionClass->getMethod($methodName);
+            $reflectionClass = new \ReflectionClass($this->className);
+            try {
+                $this->reflectionMethod = $reflectionClass->getMethod($this->methodName);
+            } catch (\Exception $e) {
+                throw new \ReflectionException("Method not found: {$this->className}@{$this->methodName}");
+            }
             $filename = $reflectionClass->getFileName();
             
             $originalComment = $this->reflectionMethod->getDocComment();;
@@ -34,11 +45,7 @@ class Generator
             $fileContent = file_get_contents($filename);
             $fileContent = str_replace($originalComment, $newComment, $fileContent);
 
-            // file_put_contents($filename, $fileContent);
-            
-            if ($i === 10) {
-                exit;
-            }
+            file_put_contents($filename, $fileContent);
         }
     }
 
@@ -95,16 +102,17 @@ class Generator
         $docComments = trim($docComments, "\n");
         $newDocComments = $this->generateComment();
 
+        if ($docComments && !$this->replace) {
+            return $newComment;
+        }
+
         if ($docComments) {
             $newComment = str_replace($docComments, $newDocComments, $newComment);
         } else if ($returnComments){
             $newComment = str_replace($returnComments, $newDocComments . "\n" . $returnComments, $newComment);
         } else {
-
+            throw new \Exception("Method without comments: {$this->className}@{$this->methodName}");
         }
-        
-
-        dump($newComment);
 
         return $newComment;
     }
@@ -115,7 +123,7 @@ class Generator
         if (!empty($this->route->action['as'])) {
             $operationId = $this->route->action['as'];
         }
-        
+
         $params = [
             'path' => $this->route->uri,
             'summary' => $this->description,
@@ -155,6 +163,10 @@ class Generator
             $comments .= "     *     ),\n";
         }
 
+        $comments .= "     *     @SWG\Response(\n";
+        $comments .= "     *         response=200,\n";
+        $comments .= "     *         description=\"\"\n";
+        $comments .= "     *     ),\n";
 
         $comments = trim($comments, ",\n") . "\n";
         $comments .= '     * )';

@@ -37,6 +37,7 @@ class Generator
             } catch (\Exception $e) {
                 throw new \ReflectionException("Method not found: {$this->className}@{$this->methodName}");
             }
+            
             $filename = $reflectionClass->getFileName();
             
             $originalComment = $this->reflectionMethod->getDocComment();;
@@ -77,7 +78,7 @@ class Generator
             }
 
             $parseStartString = '@';
-            if (substr($parsedLine, 0, strlen($parseStartString)) !== $parseStartString && !$this->description) {
+            if (substr($parsedLine, 0, strlen($parseStartString)) !== $parseStartString && !$this->description && !$docCommentsOpen) {
                 $this->description = $parsedLine;
             }
 
@@ -135,9 +136,14 @@ class Generator
 
         $method = '\\' . ucfirst(strtolower($this->route->methods[0]));
         $comments = '';
-        $comments .= "     * @SWG{$method}(' . \n";
-        foreach ($params as $key => $val){
-            $comments .= "     *     {$key}=\"{$val}\",\n";
+        $comments .= "     * @SWG{$method}(\n";
+        foreach ($params as $key => $val) {
+            if (substr($val, 0, 1) === '{') {
+                $comments .= "     *     {$key}={$val},\n";
+            } else {
+                $comments .= "     *     {$key}=\"{$val}\",\n";
+            }
+            
         } 
 
         foreach ($this->reflectionMethod->getParameters() as $parameter) {
@@ -155,9 +161,15 @@ class Generator
             $comments .= "     *         in=\"path\",\n";
             $comments .= "     *         name=\"{$parameter->name}\",\n";
             $comments .= "     *         description=\"\",\n";
+            $type = 'string';
             if ($parameter->getType()) {
-                $comments .= "     *         type=\"{$parameter->getType()}\",\n";
+                $type = $parameter->getType()->getName();
+                if ($type === 'int') {
+                    $type = 'integer';
+                }
             }
+
+            $comments .= "     *         type=\"{$type}\",\n";
        
             $comments .= "     *         required={$required}\n";
             $comments .= "     *     ),\n";
